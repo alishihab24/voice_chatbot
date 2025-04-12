@@ -1,397 +1,81 @@
-// // // let mediaRecorder;
-// // // let audioChunks = [];
-// // // let isRecording = false;
-// // // let currentAudio = null;
-// // // let isFirstInteraction = true;
-
-// // // const chatbotWindow = document.getElementById('chatbot-window');
-// // // const closeBtn = document.getElementById('close-btn');
-// // // const chatBox = document.getElementById('chatBox');
-// // // const userInput = document.getElementById('userInput');
-// // // const sendBtn = document.getElementById('send-btn');
-// // // const voiceBtn = document.getElementById('voice-input-btn');
-// // // const loadingAnimation = document.getElementById('loadingAnimation');
-// // // const recordingAnimation = document.getElementById('recordingAnimation');
-// // // const chatbotIcon = document.getElementById('chatbot-icon');
-
-// // // const isFirstLogin = () => {
-// // //     const firstLogin = localStorage.getItem('firstLogin') === null;
-// // //     if (firstLogin) {
-// // //         localStorage.setItem('firstLogin', 'false');
-// // //         localStorage.removeItem('chatMessages');
-// // //     }
-// // //     return firstLogin;
-// // // };
-
-// // // const loadMessages = () => {
-// // //     chatBox.innerHTML = '';
-// // //     if (!isFirstLogin()) {
-// // //         const messages = JSON.parse(localStorage.getItem('chatMessages') || '[]');
-// // //         messages.forEach(msg => {
-// // //             if (msg.type === 'text') {
-// // //                 appendMessage(msg.sender, msg.text, msg.timestamp);
-// // //             }
-// // //         });
-// // //     }
-// // // };
-
-// // // const saveMessage = (sender, text, timestamp, type = 'text') => {
-// // //     const messages = JSON.parse(localStorage.getItem('chatMessages') || '[]');
-// // //     messages.push({ sender, text, timestamp, type });
-// // //     localStorage.setItem('chatMessages', JSON.stringify(messages));
-// // // };
-
-// // // const formatTime = (date) => {
-// // //     return date.toLocaleTimeString([], { 
-// // //         hour: '2-digit', 
-// // //         minute: '2-digit', 
-// // //         second: '2-digit',
-// // //         hour12: true 
-// // //     }).toUpperCase();
-// // // };
-
-// // // async function initializeVoiceRecording() {
-// // //     try {
-// // //         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-// // //         mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
-
-// // //         mediaRecorder.ondataavailable = (event) => {
-// // //             audioChunks.push(event.data);
-// // //         };
-
-// // //         mediaRecorder.onstop = async () => {
-// // //             const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-// // //             const timestamp = formatTime(new Date());
-
-// // //             try {
-// // //                 showLoading();
-// // //                 const formData = new FormData();
-// // //                 formData.append('audio', audioBlob, 'recording.webm');
-
-// // //                 const response = await fetch('http://14.139.189.232:8087/upload-audio', {
-// // //                     method: 'POST',
-// // //                     body: formData,
-// // //                 });
-
-// // //                 if (response.ok) {
-// // //                     const result = await response.json();
-// // //                     const recognizedText = result.recognizedText || "Could not recognize speech";
-
-// // //                     appendMessage('user', recognizedText, timestamp);
-// // //                     saveMessage('user', recognizedText, timestamp);
-
-// // //                     stopCurrentAudio();
-// // //                     await getBotResponse(recognizedText);
-// // //                 }
-// // //             } catch (error) {
-// // //                 console.error('Upload failed:', error);
-// // //                 appendMessage('bot', "Sorry, I encountered an error processing your voice message.", formatTime(new Date()));
-// // //             } finally {
-// // //                 hideLoading();
-// // //                 audioChunks = [];
-// // //             }
-// // //         };
-// // //     } catch (error) {
-// // //         console.error('Microphone access error:', error);
-// // //         appendMessage('bot', "Please enable microphone access to use voice commands.", formatTime(new Date()));
-// // //     }
-// // // }
-
-// // // function appendMessage(sender, message, timestamp) {
-// // //     const messageDiv = document.createElement("div");
-// // //     messageDiv.className = `message ${sender}`;
-
-// // //     const initial = sender === 'user' ? 'YOU' : 'BOT';
-// // //     const isBot = sender === 'bot';
-
-// // //     messageDiv.innerHTML = `
-// // //         <div class="message-avatar">${initial}</div>
-// // //         <div class="message-content ${isBot ? 'message-bot' : ''}">
-// // //             <div class="message-text">${message}</div>
-// // //             <div class="message-timestamp">${timestamp}</div>
-// // //         </div>
-// // //     `;
-
-// // //     chatBox.appendChild(messageDiv);
-// // //     chatBox.scrollTop = chatBox.scrollHeight;
-    
-// // //     if (isFirstInteraction) {
-// // //         isFirstInteraction = false;
-// // //     }
-// // // }
-
-// // // function stopCurrentAudio() {
-// // //     if (currentAudio) {
-// // //         currentAudio.pause();
-// // //         currentAudio = null;
-// // //     }
-// // // }
-
-// // // async function playAudio() {
-// // //     try {
-// // //         stopCurrentAudio();
-// // //         // showLoading();
-        
-// // //         const response = await fetch('http://14.139.189.232:8087/audio');
-// // //         if (!response.ok) throw new Error('Audio fetch failed');
-        
-// // //         const audioBlob = await response.blob();
-// // //         const audioUrl = URL.createObjectURL(audioBlob);
-        
-// // //         currentAudio = new Audio(audioUrl);
-// // //         currentAudio.autoplay = true;
-        
-// // //         currentAudio.onended = () => {
-// // //             URL.revokeObjectURL(audioUrl);
-// // //             currentAudio = null;
-// // //             hideLoading();
-// // //         };
-// // //     } catch (error) {
-// // //         console.error('Error playing audio:', error);
-// // //         hideLoading();
-// // //     }
-// // // }
-
-// // // async function getBotResponse(message) {
-// // //     try {
-// // //         showLoading();
-// // //         const response = await fetch(`http://14.139.189.232:8087/get_next_question/${encodeURIComponent(message)}`);
-// // //         const botReply = await response.text();
-        
-// // //         const timestamp = formatTime(new Date());
-// // //         hideLoading();
-// // //         appendMessage('bot', botReply, timestamp);
-// // //         saveMessage('bot', botReply, timestamp);
-       
-        
-// // //         await playAudio();
-// // //     } catch (error) {
-// // //         console.error('Error getting bot response:', error);
-// // //         appendMessage('bot', "Sorry, I'm having trouble connecting to the server.", formatTime(new Date()));
-// // //     } finally {
-// // //         hideLoading();
-// // //     }
-// // // }
-
-// // // async function startChat() {
-// // //     try {
-// // //         const response = await fetch('http://14.139.189.232:8087/first_question');
-// // //         const firstQuestion = await response.text();
-        
-// // //         const timestamp = formatTime(new Date());
-// // //         appendMessage('bot', firstQuestion, timestamp);
-// // //         saveMessage('bot', firstQuestion, timestamp);
-        
-// // //         await playAudio();
-// // //     } catch (error) {
-// // //         console.error('Error starting chat:', error);
-// // //         appendMessage('bot', "Welcome to KSFE Assistant! How can I help you today?", formatTime(new Date()));
-// // //     }
-// // // }
-
-// // // async function sendMessage() {
-// // //     const message = userInput.value.trim();
-// // //     if (message) {
-// // //         const timestamp = formatTime(new Date());
-// // //         appendMessage('user', message, timestamp);
-// // //         saveMessage('user', message, timestamp);
-        
-// // //         userInput.value = '';
-// // //         stopCurrentAudio();
-// // //         await getBotResponse(message);
-// // //     }
-// // // }
-
-// // // function startRecording() {
-// // //     if (mediaRecorder && mediaRecorder.state === 'inactive') {
-// // //         stopCurrentAudio();
-// // //         audioChunks = [];
-// // //         mediaRecorder.start();
-// // //         isRecording = true;
-// // //         voiceBtn.classList.add('recording');
-// // //         showRecording();
-// // //     }
-// // // }
-
-// // // function stopRecording() {
-// // //     if (mediaRecorder && mediaRecorder.state === 'recording') {
-// // //         mediaRecorder.stop();
-// // //         isRecording = false;
-// // //         voiceBtn.classList.remove('recording');
-// // //         hideRecording();
-// // //     }
-// // // }
-
-// // // function showLoading() {
-// // //     loadingAnimation.style.display = 'block';
-// // // }
-
-// // // function hideLoading() {
-// // //     loadingAnimation.style.display = 'none';
-// // // }
-
-// // // function showRecording() {
-// // //     recordingAnimation.style.display = 'block';
-// // // }
-
-// // // function hideRecording() {
-// // //     recordingAnimation.style.display = 'none';
-// // // }
-
-// // // let isDragging = false;
-// // // let offset = { x: 0, y: 0 };
-
-// // // chatbotWindow.addEventListener('mousedown', (e) => {
-// // //     if (window.innerWidth >= 768 && e.target.closest('.chat-header')) {
-// // //         isDragging = true;
-// // //         const rect = chatbotWindow.getBoundingClientRect();
-// // //         offset = {
-// // //             x: e.clientX - rect.left,
-// // //             y: e.clientY - rect.top
-// // //         };
-// // //         chatbotWindow.style.cursor = 'grabbing';
-// // //     }
-// // // });
-
-// // // document.addEventListener('mousemove', (e) => {
-// // //     if (isDragging) {
-// // //         const x = e.clientX - offset.x;
-// // //         const y = e.clientY - offset.y;
-// // //         chatbotWindow.style.left = `${x}px`;
-// // //         chatbotWindow.style.top = `${y}px`;
-// // //     }
-// // // });
-
-// // // document.addEventListener('mouseup', () => {
-// // //     isDragging = false;
-// // //     if (chatbotWindow) {
-// // //         chatbotWindow.style.cursor = 'default';
-// // //     }
-// // // });
-
-// // // closeBtn.addEventListener('click', () => {
-// // //     if (window.innerWidth >= 768) {
-// // //         chatbotWindow.classList.remove('open');
-// // //     }
-// // // });
-
-// // // sendBtn.addEventListener('click', sendMessage);
-
-// // // userInput.addEventListener('keypress', (e) => {
-// // //     if (e.key === 'Enter') sendMessage();
-// // // });
-
-// // // voiceBtn.addEventListener('mousedown', startRecording);
-// // // voiceBtn.addEventListener('mouseup', stopRecording);
-// // // voiceBtn.addEventListener('mouseleave', stopRecording);
-
-// // // voiceBtn.addEventListener('touchstart', (e) => {
-// // //     e.preventDefault();
-// // //     startRecording();
-// // // });
-
-// // // voiceBtn.addEventListener('touchend', (e) => {
-// // //     e.preventDefault();
-// // //     stopRecording();
-// // // });
-
-// // // document.addEventListener('DOMContentLoaded', () => {
-// // //     initializeVoiceRecording();
-// // //     loadMessages();
-// // //     startChat();
-    
-// // //     function checkScreenSize() {
-// // //         if (window.innerWidth >= 768) {
-// // //             document.querySelector('.website-background').style.display = 'block';
-// // //             chatbotIcon.style.display = 'flex';
-// // //             chatbotWindow.classList.remove('open');
-// // //         } else {
-// // //             document.querySelector('.website-background').style.display = 'none';
-// // //             chatbotIcon.style.display = 'none';
-// // //             chatbotWindow.classList.add('open');
-// // //         }
-// // //     }
-    
-// // //     chatbotIcon.addEventListener('click', () => {
-// // //         if (window.innerWidth >= 768) {
-// // //             chatbotWindow.classList.toggle('open');
-// // //         }
-// // //     });
-    
-// // //     window.addEventListener('resize', checkScreenSize);
-// // //     checkScreenSize();
-// // // });
-
-
 // // let mediaRecorder;
 // // let audioChunks = [];
 // // let isRecording = false;
-// // let currentAudio = null;
-// // let isFirstInteraction = true;
 
-// // const chatbotWindow = document.getElementById('chatbot-window');
-// // const closeBtn = document.getElementById('close-btn');
-// // const chatBox = document.getElementById('chatBox');
-// // const userInput = document.getElementById('userInput');
-// // const sendBtn = document.getElementById('send-btn');
-// // const voiceBtn = document.getElementById('voice-input-btn');
-// // const loadingAnimation = document.getElementById('loadingAnimation');
-// // const recordingAnimation = document.getElementById('recordingAnimation');
-// // const chatbotIcon = document.getElementById('chatbot-icon');
+// // // Load messages from localStorage
+// // // const loadMessages = () => {
+// // //     const messages = JSON.parse(localStorage.getItem('chatMessages') || '[]');
+// // //     messages.forEach(msg => {
+// // //         if (msg.type === 'voice') {
+// // //             appendVoiceMessage(`ver_feb_07/audio/${msg.filename}`, msg.timestamp, msg.isBot);
+// // //         } else {
+// // //             appendMessage(msg.sender, msg.text, msg.timestamp);
+// // //         }
+// // //     });
+// // // };
 
-// // // Function to safely update element styles and classes
-// // function safeElementUpdate(element, action, value) {
-// //     if (element) {
-// //         try {
-// //             if (action === 'addClass') {
-// //                 element.classList.add(value);
-// //             } else if (action === 'removeClass') {
-// //                 element.classList.remove(value);
-// //             } else if (action === 'setStyle') {
-// //                 element.style[value.property] = value.value;
+
+// // const loadMessages = async () => {
+// //     const messages = JSON.parse(localStorage.getItem('chatMessages') || '[]');
+
+// //     for (const msg of messages) {
+// //         if (msg.type === 'voice') {
+// //             try {
+// //                 const response = await fetch('http://14.139.189.232:8087/audio');
+// //                 if (!response.ok) {
+// //                     throw new Error(`HTTP error! Status: ${response.status}`);
+// //                 }
+// //                 const audioBlob = await response.blob();
+// //                 const audioUrl = URL.createObjectURL(audioBlob);
+// //                 appendVoiceMessage(audioUrl, msg.timestamp, msg.isBot);
+// //             } catch (error) {
+// //                 console.error('Error fetching audio file:', error);
 // //             }
-// //         } catch (error) {
-// //             console.error(`Failed to ${action} on element:`, error);
+// //         } else {
+// //             appendMessage(msg.sender, msg.text, msg.timestamp);
 // //         }
 // //     }
-// // }
-
-// // const isFirstLogin = () => {
-// //     const firstLogin = localStorage.getItem('firstLogin') === null;
-// //     if (firstLogin) {
-// //         localStorage.setItem('firstLogin', 'false');
-// //         localStorage.removeItem('chatMessages');
-// //     }
-// //     return firstLogin;
 // // };
 
-// // const loadMessages = () => {
-// //     chatBox.innerHTML = '';
-// //     if (!isFirstLogin()) {
-// //         const messages = JSON.parse(localStorage.getItem('chatMessages') || '[]');
-// //         messages.forEach(msg => {
-// //             if (msg.type === 'text') {
-// //                 appendMessage(msg.sender, msg.text, msg.timestamp);
-// //             }
-// //         });
-// //     }
-// // };
 
-// // const saveMessage = (sender, text, timestamp, type = 'text') => {
+// // // const loadMessages = async () => {
+// // //     // clearMessages();
+// // //     const messages = JSON.parse(localStorage.getItem('chatMessages') || '[]');
+// // //     const playedMessages = new Set(); // Track played voice messages
+
+// // //     for (const msg of messages) {
+// // //         if (msg.type === 'voice' && !playedMessages.has(msg.timestamp)) {
+// // //             try {
+// // //                 const response = await fetch('http://14.139.189.232:8087/audio');
+// // //                 if (!response.ok) {
+// // //                     throw new Error(`HTTP error! Status: ${response.status}`);
+// // //                 }
+// // //                 const audioBlob = await response.blob();
+// // //                 const audioUrl = URL.createObjectURL(audioBlob);
+// // //                 appendVoiceMessage(audioUrl, msg.timestamp, msg.isBot);
+// // //                 playedMessages.add(msg.timestamp); // Mark message as played
+// // //             } catch (error) {
+// // //                 console.error('Error fetching audio file:', error);
+// // //             }
+// // //         } else if (msg.type !== 'voice') {
+// // //             appendMessage(msg.sender, msg.text, msg.timestamp);
+// // //         }
+// // //     }
+// // // };
+
+
+// // // Save message to localStorage
+// // const saveMessage = (sender, text, timestamp, type = 'text', filename = null, isBot = false) => {
 // //     const messages = JSON.parse(localStorage.getItem('chatMessages') || '[]');
-// //     messages.push({ sender, text, timestamp, type });
+// //     messages.push({ sender, text, timestamp, type, filename, isBot });
 // //     localStorage.setItem('chatMessages', JSON.stringify(messages));
 // // };
 
-// // const formatTime = (date) => {
-// //     return date.toLocaleTimeString([], { 
-// //         hour: '2-digit', 
-// //         minute: '2-digit', 
-// //         second: '2-digit',
-// //         hour12: true 
-// //     }).toUpperCase();
-// // };
 
+// // const clearMessages = () => {
+// //     localStorage.removeItem('chatMessages'); // Removes all stored messages
+// // };
+// // // Initialize voice recording
 // // async function initializeVoiceRecording() {
 // //     try {
 // //         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -403,13 +87,13 @@
 
 // //         mediaRecorder.onstop = async () => {
 // //             const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-// //             const timestamp = formatTime(new Date());
+// //             const timestamp = new Date().toLocaleTimeString();
+// //             const filename = 'audio1.webm';
+
+// //             const formData = new FormData();
+// //             formData.append('audio', audioBlob, filename);
 
 // //             try {
-// //                 showLoading();
-// //                 const formData = new FormData();
-// //                 formData.append('audio', audioBlob, 'recording.webm');
-
 // //                 const response = await fetch('http://14.139.189.232:8087/upload-audio', {
 // //                     method: 'POST',
 // //                     body: formData,
@@ -417,38 +101,49 @@
 
 // //                 if (response.ok) {
 // //                     const result = await response.json();
-// //                     const recognizedText = result.recognizedText || "Could not recognize speech";
+// //                     const recognizedText = result.recognizedText;
 
+// //                     // Display recognized text in the chat
 // //                     appendMessage('user', recognizedText, timestamp);
 // //                     saveMessage('user', recognizedText, timestamp);
 
-// //                     stopCurrentAudio();
-// //                     await getBotResponse(recognizedText);
+// //                     // Send recognized text to the chatbot
+// //                     const botResponse = await fetch(`http://14.139.189.232:8087/get_next_question/${encodeURIComponent(recognizedText)}`);
+// //                     const botReply = await botResponse.text();
+
+// //                     // Display bot response in the chat
+// //                     appendMessage('bot', botReply, new Date().toLocaleTimeString());
+// //                     saveMessage('bot', botReply, new Date().toLocaleTimeString());
+
+// //                     // Autoplay bot's voice response
+// //                     const botVoiceUrl = `audio/audio2.wav?timestamp=${new Date().getTime()}`;
+// //                     // playAudio(botVoiceUrl);
+// //                     playAudio();
 // //                 }
 // //             } catch (error) {
 // //                 console.error('Upload failed:', error);
-// //                 appendMessage('bot', "Sorry, I encountered an error processing your voice message.", formatTime(new Date()));
 // //             } finally {
-// //                 hideLoading();
-// //                 audioChunks = [];
+// //                 hideLoadingAnimation(); // Hide loading animation after processing
 // //             }
+
+// //             audioChunks = [];
 // //         };
 // //     } catch (error) {
 // //         console.error('Microphone access error:', error);
-// //         appendMessage('bot', "Please enable microphone access to use voice commands.", formatTime(new Date()));
 // //     }
 // // }
 
+// // // Append text message to chat box
 // // function appendMessage(sender, message, timestamp) {
+// //     const chatBox = document.getElementById('chatBox');
 // //     const messageDiv = document.createElement("div");
 // //     messageDiv.className = `message ${sender}`;
 
 // //     const initial = sender === 'user' ? 'YOU' : 'BOT';
-// //     const isBot = sender === 'bot';
 
 // //     messageDiv.innerHTML = `
 // //         <div class="message-avatar">${initial}</div>
-// //         <div class="message-content ${isBot ? 'message-bot' : ''}">
+// //         <div class="message-content">
 // //             <div class="message-text">${message}</div>
 // //             <div class="message-timestamp">${timestamp}</div>
 // //         </div>
@@ -456,158 +151,231 @@
 
 // //     chatBox.appendChild(messageDiv);
 // //     chatBox.scrollTop = chatBox.scrollHeight;
-    
-// //     if (isFirstInteraction) {
-// //         isFirstInteraction = false;
+// // }
+
+// // // Append voice message to chat box
+// // function appendVoiceMessage(audioUrl, timestamp, isBot) {
+// //     const chatBox = document.getElementById('chatBox');
+// //     const messageDiv = document.createElement("div");
+// //     messageDiv.className = `message ${isBot ? 'bot' : 'user'}`;
+
+// //     const initial = isBot ? 'BOT' : 'YOU';
+
+// //     messageDiv.innerHTML = `
+// //         <div class="message-avatar">${initial}</div>
+// //         <div class="message-content">
+// //             <div class="message-text">Voice message</div>
+// //             <audio controls autoplay onended="deleteVoiceMessage(this)" onplay="highlightPlaying(this)" onpause="unhighlightPlaying(this)">
+// //                 <source src="${audioUrl}" type="audio/wav">
+// //             </audio>
+// //             <div class="message-timestamp">${timestamp}</div>
+// //         </div>
+// //     `;
+
+// //     chatBox.appendChild(messageDiv);
+// //     chatBox.scrollTop = chatBox.scrollHeight;
+// // }
+
+// // // Delete voice message after playback
+// // function deleteVoiceMessage(audioElement) {
+// //     const messageDiv = audioElement.closest('.message');
+// //     if (messageDiv) {
+// //         messageDiv.remove();
 // //     }
 // // }
 
-// // function stopCurrentAudio() {
-// //     if (currentAudio) {
-// //         currentAudio.pause();
-// //         currentAudio = null;
-// //     }
-// // }
+// // // Play audio and delete it after playback
+// // // function playAudio(audioUrl) {
+// // //     const audio = new Audio(audioUrl);
+// // //     audio.autoplay = true;
+// // //     audio.onended = () => {
+// // //         const messageDiv = document.querySelector(`audio[src="${audioUrl}"]`)?.closest('.message');
+// // //         if (messageDiv) {
+// // //             messageDiv.remove();
+// // //         }
+// // //     };
+// // // }
+
 
 // // async function playAudio() {
 // //     try {
-// //         stopCurrentAudio();
-        
 // //         const response = await fetch('http://14.139.189.232:8087/audio');
-// //         if (!response.ok) throw new Error('Audio fetch failed');
-        
+// //         if (!response.ok) {
+// //             throw new Error(`HTTP error! Status: ${response.status}`);
+// //         }
+
 // //         const audioBlob = await response.blob();
 // //         const audioUrl = URL.createObjectURL(audioBlob);
-        
-// //         currentAudio = new Audio(audioUrl);
-// //         currentAudio.autoplay = true;
-        
-// //         currentAudio.onended = () => {
-// //             URL.revokeObjectURL(audioUrl);
-// //             currentAudio = null;
-// //             hideLoading();
+
+// //         const audio = new Audio(audioUrl);
+// //         audio.autoplay = true;
+
+// //         audio.onended = () => {
+// //             URL.revokeObjectURL(audioUrl); // Free up memory
 // //         };
 // //     } catch (error) {
-// //         console.error('Error playing audio:', error);
-// //         hideLoading();
+// //         console.error('Error fetching or playing audio:', error);
 // //     }
 // // }
 
-// // async function getBotResponse(message) {
-// //     try {
-// //         showLoading();
-// //         const response = await fetch(`http://14.139.189.232:8087/get_next_question/${encodeURIComponent(message)}`);
-// //         const botReply = await response.text();
-        
-// //         const timestamp = formatTime(new Date());
-// //         hideLoading();
-// //         appendMessage('bot', botReply, timestamp);
-// //         saveMessage('bot', botReply, timestamp);
-       
-// //         await playAudio();
-// //     } catch (error) {
-// //         console.error('Error getting bot response:', error);
-// //         appendMessage('bot', "Sorry, I'm having trouble connecting to the server.", formatTime(new Date()));
-// //     } finally {
-// //         hideLoading();
-// //     }
-// // }
-
+// // // Start the chat by fetching the first question
 // // async function startChat() {
 // //     try {
 // //         const response = await fetch('http://14.139.189.232:8087/first_question');
 // //         const firstQuestion = await response.text();
-        
-// //         const timestamp = formatTime(new Date());
-// //         appendMessage('bot', firstQuestion, timestamp);
-// //         saveMessage('bot', firstQuestion, timestamp);
-        
-// //         await playAudio();
+// //         appendMessage("bot", firstQuestion, new Date().toLocaleTimeString());
+    
+// //         // Automatically fetch and play the voice response for the first question
+// //         playAudio();
+    
+// //         setTimeout(async () => {
+// //             try {
+// //                 const botTimestamp = new Date().toLocaleTimeString();
+// //                 appendVoiceMessage(`http://14.139.189.232:8087/audio?timestamp=${new Date().getTime()}`, botTimestamp, true);
+// //                 saveMessage('bot', '', botTimestamp, 'voice', null, true);
+// //             } catch (error) {
+// //                 console.error('Error fetching voice response:', error);
+// //             }
+// //         }, 1000);
 // //     } catch (error) {
 // //         console.error('Error starting chat:', error);
-// //         appendMessage('bot', "Welcome to KSFE Assistant! How can I help you today?", formatTime(new Date()));
 // //     }
-// // }
+// // }    
+// // //     try {
+// // //         const response = await fetch('http://14.139.189.232:8087/first_question');
+// // //         const firstQuestion = await response.text();
+// // //         appendMessage("bot", firstQuestion, new Date().toLocaleTimeString());
 
-// // async function sendMessage() {
-// //     const message = userInput.value.trim();
+// // //         // Automatically play the voice response for the first question
+// // //         const botVoiceUrl = `audio/audio1.wav?timestamp=${new Date().getTime()}`;
+// // //         playAudio(botVoiceUrl);
+// // //         setTimeout(() => {
+// // //             const botFilename = 'audio1.wav';
+// // //             const botTimestamp = new Date().toLocaleTimeString();
+// // //             appendVoiceMessage(`ver_feb_07/audio/${botFilename}`, botTimestamp, true);
+// // //             saveMessage('bot', '', botTimestamp, 'voice', botFilename, true);
+// // //         }, 1000);
+// // //     } catch (error) {
+// // //         console.error('Error starting chat:', error);
+// // //     }
+// // // }
+
+// // // Initialize the application
+// // document.addEventListener('DOMContentLoaded', () => {
+// //     initializeVoiceRecording();
+// //     loadMessages();
+// //     startChat();
+// // });
+
+// // // Button event listeners
+// // document.getElementById('send-btn').addEventListener('click', sendMessage);
+// // document.getElementById('userInput').addEventListener('keypress', (e) => {
+// //     if (e.key === 'Enter') sendMessage();
+// // });
+
+// // const voiceButton = document.getElementById('voice-input-btn');
+
+// // voiceButton.addEventListener('mousedown', startRecording);
+// // voiceButton.addEventListener('mouseup', stopRecording);
+// // voiceButton.addEventListener('mouseleave', stopRecording);
+
+// // // Send a text message
+// // function sendMessage() {
+// //     const input = document.getElementById('userInput');
+// //     const message = input.value.trim();
 // //     if (message) {
-// //         const timestamp = formatTime(new Date());
+// //         const timestamp = new Date().toLocaleTimeString();
 // //         appendMessage('user', message, timestamp);
 // //         saveMessage('user', message, timestamp);
-        
-// //         userInput.value = '';
-// //         stopCurrentAudio();
-// //         await getBotResponse(message);
+
+// //         fetch(`http://14.139.189.232:8087/get_next_question/${encodeURIComponent(message)}`)
+// //             .then(response => response.text())
+// //             .then(botReply => {
+// //                 appendMessage('bot', botReply, new Date().toLocaleTimeString());
+// //                 saveMessage('bot', botReply, new Date().toLocaleTimeString());
+
+// //                 // Autoplay bot's voice response
+// //                 const botVoiceUrl = `audio/audio2.wav?timestamp=${new Date().getTime()}`;
+// //                 //playAudio(botVoiceUrl);
+// //                 playAudio();
+// //             })
+// //             .catch(error => console.error('Error sending message:', error));
+
+// //         input.value = '';
 // //     }
 // // }
 
-// // // Improved recording functions with better animation handling
+// // // Start recording
 // // function startRecording() {
 // //     if (mediaRecorder && mediaRecorder.state === 'inactive') {
-// //         stopCurrentAudio();
 // //         audioChunks = [];
 // //         mediaRecorder.start();
 // //         isRecording = true;
-        
-// //         // Use direct style manipulation instead of classList
-// //         if (voiceBtn) {
-// //             voiceBtn.style.backgroundColor = '#ff4757'; // Red color when recording
-// //             voiceBtn.style.animation = 'pulse 1.5s infinite';
-// //         }
-        
-// //         showRecording();
+// //         voiceButton.classList.add('recording');
+// //         showRecordingAnimation();
 // //     }
 // // }
 
+// // // Stop recording
 // // function stopRecording() {
 // //     if (mediaRecorder && mediaRecorder.state === 'recording') {
 // //         mediaRecorder.stop();
 // //         isRecording = false;
-        
-// //         // Reset styles directly
-// //         if (voiceBtn) {
-// //             voiceBtn.style.backgroundColor = ''; // Reset to default
-// //             voiceBtn.style.animation = '';
-// //         }
-        
-// //         hideRecording();
+// //         voiceButton.classList.remove('recording');
+// //         hideRecordingAnimation();
+// //         showLoadingAnimation(); // Show loading animation while processing audio
 // //     }
 // // }
 
-// // function showLoading() {
-// //     if (loadingAnimation) {
-// //         loadingAnimation.style.display = 'block';
-// //     }
+// // // Show loading animation
+// // function showLoadingAnimation() {
+// //     const loadingAnimation = document.getElementById('loadingAnimation');
+// //     loadingAnimation.style.display = 'block';
 // // }
 
-// // function hideLoading() {
-// //     if (loadingAnimation) {
-// //         loadingAnimation.style.display = 'none';
-// //     }
+// // // Hide loading animation
+// // function hideLoadingAnimation() {
+// //     const loadingAnimation = document.getElementById('loadingAnimation');
+// //     loadingAnimation.style.display = 'none';
 // // }
 
-// // function showRecording() {
-// //     if (recordingAnimation) {
-// //         recordingAnimation.innerHTML = `
-// //             <div class="recording-pulse"></div>
-// //             <span>Recording...</span>
-// //         `;
-// //         recordingAnimation.style.display = 'flex';
-// //     }
+// // // Show recording animation
+// // function showRecordingAnimation() {
+// //     const recordingAnimation = document.getElementById('recordingAnimation');
+// //     recordingAnimation.style.display = 'block';
 // // }
 
-// // function hideRecording() {
-// //     if (recordingAnimation) {
-// //         recordingAnimation.style.display = 'none';
-// //     }
+// // // Hide recording animation
+// // function hideRecordingAnimation() {
+// //     const recordingAnimation = document.getElementById('recordingAnimation');
+// //     recordingAnimation.style.display = 'none';
 // // }
 
+
+
+// // const chatbotIcon = document.getElementById('chatbot-icon');
+// // const chatbotWindow = document.getElementById('chatbot-window');
+// // const closeBtn = document.getElementById('close-btn');
 // // let isDragging = false;
 // // let offset = { x: 0, y: 0 };
 
+// // // Toggle Chat Window
+// // chatbotIcon.addEventListener('click', () => {
+// //     chatbotWindow.classList.toggle('open');
+// //     if (!chatbotWindow.classList.contains('open')) {
+// //         resetChatPosition();
+// //     }
+// // });
+
+// // // Close Chat Window
+// // closeBtn.addEventListener('click', () => {
+// //     chatbotWindow.classList.remove('open');
+// //     resetChatPosition();
+// // });
+
+// // // Draggable Functionality
 // // chatbotWindow.addEventListener('mousedown', (e) => {
-// //     if (window.innerWidth >= 768 && e.target.closest('.chat-header')) {
+// //     if (e.target.closest('.chat-header')) {
 // //         isDragging = true;
 // //         const rect = chatbotWindow.getBoundingClientRect();
 // //         offset = {
@@ -629,1252 +397,752 @@
 
 // // document.addEventListener('mouseup', () => {
 // //     isDragging = false;
-// //     if (chatbotWindow) {
-// //         chatbotWindow.style.cursor = 'default';
-// //     }
+// //     chatbotWindow.style.cursor = 'default';
 // // });
 
-// // // Initialize all event listeners
-// // function initializeEventListeners() {
-// //     if (closeBtn) {
-// //         closeBtn.addEventListener('click', () => {
-// //             if (window.innerWidth >= 768) {
-// //                 safeElementUpdate(chatbotWindow, 'removeClass', 'open');
-// //             }
-// //         });
-// //     }
-
-// //     if (sendBtn) {
-// //         sendBtn.addEventListener('click', sendMessage);
-// //     }
-
-// //     if (userInput) {
-// //         userInput.addEventListener('keypress', (e) => {
-// //             if (e.key === 'Enter') sendMessage();
-// //         });
-// //     }
-
-// //     if (voiceBtn) {
-// //         // For desktop
-// //         voiceBtn.addEventListener('mousedown', (e) => {
-// //             e.preventDefault();
-// //             startRecording();
-// //         });
-        
-// //         voiceBtn.addEventListener('mouseup', (e) => {
-// //             e.preventDefault();
-// //             stopRecording();
-// //         });
-        
-// //         voiceBtn.addEventListener('mouseleave', (e) => {
-// //             if (isRecording) {
-// //                 e.preventDefault();
-// //                 stopRecording();
-// //             }
-// //         });
-
-// //         // For mobile
-// //         voiceBtn.addEventListener('touchstart', (e) => {
-// //             e.preventDefault();
-// //             startRecording();
-// //         });
-        
-// //         voiceBtn.addEventListener('touchend', (e) => {
-// //             e.preventDefault();
-// //             stopRecording();
-// //         });
-        
-// //         voiceBtn.addEventListener('touchcancel', (e) => {
-// //             e.preventDefault();
-// //             stopRecording();
-// //         });
-// //     }
-
-// //     if (chatbotIcon) {
-// //         chatbotIcon.addEventListener('click', () => {
-// //             if (window.innerWidth >= 768) {
-// //                 safeElementUpdate(chatbotWindow, 'toggle', 'open');
-// //             }
-// //         });
-// //     }
+// // // Reset to initial position
+// // function resetChatPosition() {
+// //     chatbotWindow.style.left = 'calc(100% - 370px)';
+// //     chatbotWindow.style.top = 'calc(100% - 590px)';
 // // }
 
-// // document.addEventListener('DOMContentLoaded', () => {
-// //     try {
-// //         initializeVoiceRecording();
-// //         loadMessages();
-// //         startChat();
-// //         initializeEventListeners();
-        
-// //         function checkScreenSize() {
-// //             if (window.innerWidth >= 768) {
-// //                 const backgroundElement = document.querySelector('.website-background');
-// //                 if (backgroundElement) backgroundElement.style.display = 'block';
-// //                 if (chatbotIcon) chatbotIcon.style.display = 'flex';
-// //                 if (chatbotWindow) chatbotWindow.classList.remove('open');
-// //             } else {
-// //                 const backgroundElement = document.querySelector('.website-background');
-// //                 if (backgroundElement) backgroundElement.style.display = 'none';
-// //                 if (chatbotIcon) chatbotIcon.style.display = 'none';
-// //                 if (chatbotWindow) chatbotWindow.classList.add('open');
-// //             }
-// //         }
-        
-// //         window.addEventListener('resize', checkScreenSize);
-// //         checkScreenSize();
-// //     } catch (error) {
-// //         console.error("Error initializing chatbot:", error);
-// //     }
-// // });
-
-// // // Add CSS for recording animation
-// // document.head.insertAdjacentHTML('beforeend', `
-// // <style>
-// // @keyframes pulse {
-// //     0% { transform: scale(1); }
-// //     50% { transform: scale(1.1); }
-// //     100% { transform: scale(1); }
+// // // Animation Control
+// // function showLoading() {
+// //     document.getElementById('loadingAnimation').style.display = 'block';
 // // }
 
-// // #recordingAnimation {
-// //     display: none;
-// //     align-items: center;
-// //     justify-content: center;
-// //     background-color: rgba(255, 71, 87, 0.1);
-// //     padding: 8px 12px;
-// //     border-radius: 20px;
-// //     margin: 8px 0;
-// //     color: #ff4757;
-// //     font-weight: bold;
+// // function hideLoading() {
+// //     document.getElementById('loadingAnimation').style.display = 'none';
 // // }
 
-// // .recording-pulse {
-// //     width: 12px;
-// //     height: 12px;
-// //     background-color: #ff4757;
-// //     border-radius: 50%;
-// //     margin-right: 8px;
-// //     animation: pulse 1.5s infinite;
+// // function showRecording() {
+// //     document.getElementById('recordingAnimation').style.display = 'block';
 // // }
 
-// // #voice-input-btn {
-// //     transition: all 0.3s ease;
+// // function hideRecording() {
+// //     document.getElementById('recordingAnimation').style.display = 'none';
 // // }
 
-// // #voice-input-btn:active {
-// //     transform: scale(0.95);
-// // }
+// // // Initialize position
+// // resetChatPosition();
 
-// // #loadingAnimation {
-// //     display: none;
-// //     text-align: center;
-// //     padding: 10px;
-// // }
 
-// // .loading-dots {
-// //     display: inline-block;
-// // }
 
-// // .loading-dots span {
-// //     display: inline-block;
-// //     width: 8px;
-// //     height: 8px;
-// //     background-color: #007bff;
-// //     border-radius: 50%;
-// //     margin: 0 3px;
-// //     animation: loading 1.4s infinite ease-in-out both;
-// // }
-
-// // .loading-dots span:nth-child(1) {
-// //     animation-delay: -0.32s;
-// // }
-
-// // .loading-dots span:nth-child(2) {
-// //     animation-delay: -0.16s;
-// // }
-
-// // @keyframes loading {
-// //     0%, 80%, 100% { transform: scale(0); }
-// //     40% { transform: scale(1); }
-// // }
-// // </style>
-// // `);
 // let mediaRecorder;
 // let audioChunks = [];
 // let isRecording = false;
-// let currentAudio = null;
-// let isFirstInteraction = true;
+// let currentAudio = null; // Track currently playing audio
 
-// // Wait for DOM to be fully loaded before accessing elements
-// document.addEventListener('DOMContentLoaded', () => {
-//     const chatbotWindow = document.getElementById('chatbot-window');
-//     const closeBtn = document.getElementById('close-btn');
+// // Check if this is first login
+// const isFirstLogin = () => {
+//     const firstLogin = localStorage.getItem('firstLogin') === null;
+//     if (firstLogin) {
+//         localStorage.setItem('firstLogin', 'false');
+//     }
+//     return firstLogin;
+// };
+
+// // Load messages from localStorage (simplified to avoid unnecessary voice loading)
+// const loadMessages = () => {
+//     // Clear chat first
 //     const chatBox = document.getElementById('chatBox');
-//     const userInput = document.getElementById('userInput');
-//     const sendBtn = document.getElementById('send-btn');
-//     const voiceBtn = document.getElementById('voice-input-btn');
-//     const loadingAnimation = document.getElementById('loadingAnimation');
-//     const recordingAnimation = document.getElementById('recordingAnimation');
-//     const chatbotIcon = document.getElementById('chatbot-icon');
-
-//     // Explicitly log elements to verify they exist
-//     console.log("Chatbot icon found:", chatbotIcon !== null);
-//     console.log("Chatbot window found:", chatbotWindow !== null);
-
-//     const isFirstLogin = () => {
-//         const firstLogin = localStorage.getItem('firstLogin') === null;
-//         if (firstLogin) {
-//             localStorage.setItem('firstLogin', 'false');
-//             localStorage.removeItem('chatMessages');
-//         }
-//         return firstLogin;
-//     };
-
-//     const loadMessages = () => {
-//         if (!chatBox) return;
-//         chatBox.innerHTML = '';
-//         if (!isFirstLogin()) {
-//             const messages = JSON.parse(localStorage.getItem('chatMessages') || '[]');
-//             messages.forEach(msg => {
-//                 if (msg.type === 'text') {
-//                     appendMessage(msg.sender, msg.text, msg.timestamp);
-//                 }
-//             });
-//         }
-//     };
-
-//     const saveMessage = (sender, text, timestamp, type = 'text') => {
+//     chatBox.innerHTML = '';
+    
+//     // Only load messages if not first login
+//     if (!isFirstLogin()) {
 //         const messages = JSON.parse(localStorage.getItem('chatMessages') || '[]');
-//         messages.push({ sender, text, timestamp, type });
-//         localStorage.setItem('chatMessages', JSON.stringify(messages));
-//     };
+//         messages.forEach(msg => {
+//             if (msg.type === 'text') {
+//                 appendMessage(msg.sender, msg.text, msg.timestamp);
+//             }
+//             // We don't load voice messages to avoid issues
+//         });
+//     } else {
+//         // First login - clear stored messages
+//         clearMessages();
+//     }
+// };
 
-//     const formatTime = (date) => {
-//         return date.toLocaleTimeString([], { 
-//             hour: '2-digit', 
-//             minute: '2-digit', 
-//             second: '2-digit',
-//             hour12: true 
-//         }).toUpperCase();
-//     };
+// // Save message to localStorage
+// const saveMessage = (sender, text, timestamp, type = 'text') => {
+//     const messages = JSON.parse(localStorage.getItem('chatMessages') || '[]');
+//     messages.push({ sender, text, timestamp, type });
+//     localStorage.setItem('chatMessages', JSON.stringify(messages));
+// };
 
-//     async function initializeVoiceRecording() {
-//         try {
-//             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-//             mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+// // Clear all stored messages
+// const clearMessages = () => {
+//     localStorage.removeItem('chatMessages');
+// };
 
-//             mediaRecorder.ondataavailable = (event) => {
-//                 audioChunks.push(event.data);
-//             };
+// // Initialize voice recording
+// async function initializeVoiceRecording() {
+//     try {
+//         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+//         mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
 
-//             mediaRecorder.onstop = async () => {
-//                 const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-//                 const timestamp = formatTime(new Date());
+//         mediaRecorder.ondataavailable = (event) => {
+//             audioChunks.push(event.data);
+//         };
 
-//                 try {
-//                     showLoading();
-//                     const formData = new FormData();
-//                     formData.append('audio', audioBlob, 'recording.webm');
+//         mediaRecorder.onstop = async () => {
+//             const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+//             const timestamp = new Date().toLocaleTimeString();
+//             const filename = 'audio1.webm';
 
-//                     const response = await fetch('http://14.139.189.232:8087/upload-audio', {
-//                         method: 'POST',
-//                         body: formData,
-//                     });
+//             const formData = new FormData();
+//             formData.append('audio', audioBlob, filename);
 
-//                     if (response.ok) {
-//                         const result = await response.json();
-//                         const recognizedText = result.recognizedText || "Could not recognize speech";
+//             try {
+//                 showLoadingAnimation();
+//                 const response = await fetch('http://14.139.189.232:8087/upload-audio', {
+//                     method: 'POST',
+//                     body: formData,
+//                 });
 
-//                         appendMessage('user', recognizedText, timestamp);
-//                         saveMessage('user', recognizedText, timestamp);
+//                 if (response.ok) {
+//                     const result = await response.json();
+//                     const recognizedText = result.recognizedText;
 
-//                         stopCurrentAudio();
-//                         await getBotResponse(recognizedText);
-//                     }
-//                 } catch (error) {
-//                     console.error('Upload failed:', error);
-//                     appendMessage('bot', "Sorry, I encountered an error processing your voice message.", formatTime(new Date()));
-//                 } finally {
-//                     hideLoading();
-//                     audioChunks = [];
+//                     // Display recognized text in the chat
+//                     appendMessage('user', recognizedText, timestamp);
+//                     saveMessage('user', recognizedText, timestamp);
+
+//                     // Stop any currently playing audio before requesting new response
+//                     stopCurrentAudio();
+                    
+//                     // Send recognized text to the chatbot
+//                     const botResponse = await fetch(`http://14.139.189.232:8087/get_next_question/${encodeURIComponent(recognizedText)}`);
+//                     const botReply = await botResponse.text();
+//                     hideLoadingAnimation();
+//                     // Display bot response in the chat
+//                     appendMessage('bot', botReply, new Date().toLocaleTimeString());
+//                     saveMessage('bot', botReply, new Date().toLocaleTimeString());
+
+//                     // Play audio response
+//                     await playAudio();
 //                 }
-//             };
-//         } catch (error) {
-//             console.error('Microphone access error:', error);
-//             appendMessage('bot', "Please enable microphone access to use voice commands.", formatTime(new Date()));
-//         }
+//             } catch (error) {
+//                 console.error('Upload failed:', error);
+//             } finally {
+//                 hideLoadingAnimation();
+//             }
+
+//             audioChunks = [];
+//         };
+//     } catch (error) {
+//         console.error('Microphone access error:', error);
 //     }
+// }
 
-//     function appendMessage(sender, message, timestamp) {
-//         if (!chatBox) return;
-        
-//         const messageDiv = document.createElement("div");
-//         messageDiv.className = `message ${sender}`;
+// // Append text message to chat box
+// function appendMessage(sender, message, timestamp) {
+//     const chatBox = document.getElementById('chatBox');
+//     const messageDiv = document.createElement("div");
+//     messageDiv.className = `message ${sender}`;
 
-//         const initial = sender === 'user' ? 'YOU' : 'BOT';
-//         const isBot = sender === 'bot';
+//     const initial = sender === 'user' ? 'YOU' : 'BOT';
 
-//         messageDiv.innerHTML = `
-//             <div class="message-avatar">${initial}</div>
-//             <div class="message-content ${isBot ? 'message-bot' : ''}">
-//                 <div class="message-text">${message}</div>
-//                 <div class="message-timestamp">${timestamp}</div>
-//             </div>
-//         `;
+//     messageDiv.innerHTML = `
+//         <div class="message-avatar">${initial}</div>
+//         <div class="message-content">
+//             <div class="message-text">${message}</div>
+//             <div class="message-timestamp">${timestamp}</div>
+//         </div>
+//     `;
 
-//         chatBox.appendChild(messageDiv);
-//         chatBox.scrollTop = chatBox.scrollHeight;
-        
-//         if (isFirstInteraction) {
-//             isFirstInteraction = false;
-//         }
+//     chatBox.appendChild(messageDiv);
+//     chatBox.scrollTop = chatBox.scrollHeight;
+// }
+
+// // Stop any currently playing audio
+// function stopCurrentAudio() {
+//     if (currentAudio) {
+//         currentAudio.pause();
+//         currentAudio.src = '';
+//         currentAudio = null;
 //     }
+// }
 
-//     function stopCurrentAudio() {
-//         if (currentAudio) {
-//             currentAudio.pause();
+// // Play audio from server
+// async function playAudio() {
+//     try {
+//         // Stop any currently playing audio
+//         stopCurrentAudio();
+        
+//         const response = await fetch('http://14.139.189.232:8087/audio');
+//         if (!response.ok) {
+//             throw new Error(`HTTP error! Status: ${response.status}`);
+//         }
+
+//         const audioBlob = await response.blob();
+//         const audioUrl = URL.createObjectURL(audioBlob);
+
+//         currentAudio = new Audio(audioUrl);
+//         currentAudio.autoplay = true;
+
+//         currentAudio.onended = () => {
+//             URL.revokeObjectURL(audioUrl);
 //             currentAudio = null;
-//         }
-//     }
-
-//     async function playAudio() {
-//         try {
-//             stopCurrentAudio();
-            
-//             const response = await fetch('http://14.139.189.232:8087/audio');
-//             if (!response.ok) throw new Error('Audio fetch failed');
-            
-//             const audioBlob = await response.blob();
-//             const audioUrl = URL.createObjectURL(audioBlob);
-            
-//             currentAudio = new Audio(audioUrl);
-//             currentAudio.autoplay = true;
-            
+//         };
+        
+//         return new Promise((resolve) => {
 //             currentAudio.onended = () => {
 //                 URL.revokeObjectURL(audioUrl);
 //                 currentAudio = null;
-//                 hideLoading();
+//                 resolve();
 //             };
-//         } catch (error) {
-//             console.error('Error playing audio:', error);
-//             hideLoading();
-//         }
+//         });
+//     } catch (error) {
+//         console.error('Error fetching or playing audio:', error);
+//         return Promise.reject(error);
 //     }
+// }
 
-//     async function getBotResponse(message) {
-//         try {
-//             showLoading();
-//             const response = await fetch(`http://14.139.189.232:8087/get_next_question/${encodeURIComponent(message)}`);
-//             const botReply = await response.text();
-            
-//             const timestamp = formatTime(new Date());
-//             hideLoading();
-//             appendMessage('bot', botReply, timestamp);
-//             saveMessage('bot', botReply, timestamp);
-           
-//             await playAudio();
-//         } catch (error) {
-//             console.error('Error getting bot response:', error);
-//             appendMessage('bot', "Sorry, I'm having trouble connecting to the server.", formatTime(new Date()));
-//         } finally {
-//             hideLoading();
-//         }
-//     }
-
-//     async function startChat() {
-//         try {
-//             const response = await fetch('http://14.139.189.232:8087/first_question');
-//             const firstQuestion = await response.text();
-            
-//             const timestamp = formatTime(new Date());
-//             appendMessage('bot', firstQuestion, timestamp);
+// // Start the chat by fetching the first question
+// async function startChat() {
+//     try {
+//         const response = await fetch('http://14.139.189.232:8087/first_question');
+//         const firstQuestion = await response.text();
+        
+//         if (firstQuestion) {
+//             const timestamp = new Date().toLocaleTimeString();
+//             appendMessage("bot", firstQuestion, timestamp);
 //             saveMessage('bot', firstQuestion, timestamp);
             
+//             // Play audio for first question
+//             playAudio();
+//         }
+//     } catch (error) {
+//         console.error('Error starting chat:', error);
+//     }
+// }
+
+// // Initialize the application
+// document.addEventListener('DOMContentLoaded', () => {
+//     initializeVoiceRecording();
+//     loadMessages();
+//     startChat();
+// });
+
+// // Button event listeners
+// document.getElementById('send-btn').addEventListener('click', sendMessage);
+// document.getElementById('userInput').addEventListener('keypress', (e) => {
+//     if (e.key === 'Enter') sendMessage();
+// });
+
+// const voiceButton = document.getElementById('voice-input-btn');
+
+// voiceButton.addEventListener('mousedown', startRecording);
+// voiceButton.addEventListener('mouseup', stopRecording);
+// voiceButton.addEventListener('mouseleave', stopRecording);
+
+// // Send a text message
+// async function sendMessage() {
+//     const input = document.getElementById('userInput');
+//     const message = input.value.trim();
+//     if (message) {
+//         const timestamp = new Date().toLocaleTimeString();
+//         appendMessage('user', message, timestamp);
+//         saveMessage('user', message, timestamp);
+        
+//         input.value = '';
+
+//         // Stop any currently playing audio
+//         stopCurrentAudio();
+        
+//         try {
+//             showLoadingAnimation();
+//             const response = await fetch(`http://14.139.189.232:8087/get_next_question/${encodeURIComponent(message)}`);
+//             const botReply = await response.text();
+//             hideLoadingAnimation();
+//             const botTimestamp = new Date().toLocaleTimeString();
+//             appendMessage('bot', botReply, botTimestamp);
+//             saveMessage('bot', botReply, botTimestamp);
+
+//             // Play the bot's voice response
 //             await playAudio();
 //         } catch (error) {
-//             console.error('Error starting chat:', error);
-//             appendMessage('bot', "Welcome to KSFE Assistant! How can I help you today?", formatTime(new Date()));
+//             console.error('Error sending message:', error);
+//         } finally {
+//             hideLoadingAnimation();
 //         }
 //     }
+// }
 
-//     async function sendMessage() {
-//         if (!userInput || !userInput.value) return;
+// // Start recording
+// function startRecording() {
+//     if (mediaRecorder && mediaRecorder.state === 'inactive') {
+//         // Stop any currently playing audio
+//         stopCurrentAudio();
         
-//         const message = userInput.value.trim();
-//         if (message) {
-//             const timestamp = formatTime(new Date());
-//             appendMessage('user', message, timestamp);
-//             saveMessage('user', message, timestamp);
-            
-//             userInput.value = '';
-//             stopCurrentAudio();
-//             await getBotResponse(message);
-//         }
+//         audioChunks = [];
+//         mediaRecorder.start();
+//         isRecording = true;
+//         voiceButton.classList.add('recording');
+//         showRecordingAnimation();
 //     }
+// }
 
-//     // Recording functions with direct style manipulation
-//     function startRecording() {
-//         if (mediaRecorder && mediaRecorder.state === 'inactive') {
-//             stopCurrentAudio();
-//             audioChunks = [];
-//             mediaRecorder.start();
-//             isRecording = true;
-            
-//             if (voiceBtn) {
-//                 voiceBtn.style.backgroundColor = '#ff4757';
-//                 voiceBtn.style.transform = 'scale(1.1)';
-//             }
-            
-//             showRecording();
-//         }
+// // Stop recording
+// function stopRecording() {
+//     if (mediaRecorder && mediaRecorder.state === 'recording') {
+//         mediaRecorder.stop();
+//         isRecording = false;
+//         voiceButton.classList.remove('recording');
+//         hideRecordingAnimation();
+//         showLoadingAnimation();
 //     }
+// }
 
-//     function stopRecording() {
-//         if (mediaRecorder && mediaRecorder.state === 'recording') {
-//             mediaRecorder.stop();
-//             isRecording = false;
-            
-//             if (voiceBtn) {
-//                 voiceBtn.style.backgroundColor = '';
-//                 voiceBtn.style.transform = '';
-//             }
-            
-//             hideRecording();
-//         }
-//     }
+// // Show loading animation
+// function showLoadingAnimation() {
+//     const loadingAnimation = document.getElementById('loadingAnimation');
+//     loadingAnimation.style.display = 'block';
+// }
 
-//     function showLoading() {
-//         if (loadingAnimation) {
-//             loadingAnimation.style.display = 'block';
-//         }
-//     }
+// // Hide loading animation
+// function hideLoadingAnimation() {
+//     const loadingAnimation = document.getElementById('loadingAnimation');
+//     loadingAnimation.style.display = 'none';
+// }
 
-//     function hideLoading() {
-//         if (loadingAnimation) {
-//             loadingAnimation.style.display = 'none';
-//         }
-//     }
+// // Show recording animation
+// function showRecordingAnimation() {
+//     const recordingAnimation = document.getElementById('recordingAnimation');
+//     recordingAnimation.style.display = 'block';
+// }
 
-//     function showRecording() {
-//         if (recordingAnimation) {
-//             recordingAnimation.style.display = 'flex';
-//         }
-//     }
+// // Hide recording animation
+// function hideRecordingAnimation() {
+//     const recordingAnimation = document.getElementById('recordingAnimation');
+//     recordingAnimation.style.display = 'none';
+// }
 
-//     function hideRecording() {
-//         if (recordingAnimation) {
-//             recordingAnimation.style.display = 'none';
-//         }
-//     }
+// // UI and Draggable Functionality
+// const chatbotIcon = document.getElementById('chatbot-icon');
+// const chatbotWindow = document.getElementById('chatbot-window');
+// const closeBtn = document.getElementById('close-btn');
+// let isDragging = false;
+// let offset = { x: 0, y: 0 };
 
-//     let isDragging = false;
-//     let offset = { x: 0, y: 0 };
-
-//     // Make chatbot draggable in desktop mode
-//     if (chatbotWindow) {
-//         chatbotWindow.addEventListener('mousedown', (e) => {
-//             if (window.innerWidth >= 768 && e.target.closest('.chat-header')) {
-//                 isDragging = true;
-//                 const rect = chatbotWindow.getBoundingClientRect();
-//                 offset = {
-//                     x: e.clientX - rect.left,
-//                     y: e.clientY - rect.top
-//                 };
-//                 chatbotWindow.style.cursor = 'grabbing';
-//             }
-//         });
-//     }
-
-//     document.addEventListener('mousemove', (e) => {
-//         if (isDragging && chatbotWindow) {
-//             const x = e.clientX - offset.x;
-//             const y = e.clientY - offset.y;
-//             chatbotWindow.style.left = `${x}px`;
-//             chatbotWindow.style.top = `${y}px`;
-//         }
-//     });
-
-//     document.addEventListener('mouseup', () => {
-//         isDragging = false;
-//         if (chatbotWindow) {
-//             chatbotWindow.style.cursor = 'default';
-//         }
-//     });
-
-//     // Set up event listeners
-//     function setupEventListeners() {
-//         // Fix for chatbot icon
-//         if (chatbotIcon) {
-//             // Remove any existing event listeners
-//             chatbotIcon.removeEventListener('click', toggleChatWindow);
-            
-//             // Add fresh event listener with debugging
-//             chatbotIcon.addEventListener('click', toggleChatWindow);
-            
-//             // Make the icon more apparent for debugging
-//             chatbotIcon.style.cursor = 'pointer';
-//             chatbotIcon.style.zIndex = '9999';
-            
-//             console.log("Event listener added to chatbot icon");
-//         }
-        
-//         // Function to toggle chat window
-//         function toggleChatWindow(e) {
-//             console.log("Chatbot icon clicked!");
-//             e.stopPropagation(); // Prevent event bubbling
-            
-//             if (chatbotWindow) {
-//                 chatbotWindow.classList.toggle('open');
-//                 console.log("Chat window toggled:", chatbotWindow.classList.contains('open'));
-//             }
-//         }
-
-//         if (closeBtn) {
-//             closeBtn.addEventListener('click', () => {
-//                 if (window.innerWidth >= 768 && chatbotWindow) {
-//                     chatbotWindow.classList.remove('open');
-//                 }
-//             });
-//         }
-
-//         if (sendBtn) {
-//             sendBtn.addEventListener('click', sendMessage);
-//         }
-
-//         if (userInput) {
-//             userInput.addEventListener('keypress', (e) => {
-//                 if (e.key === 'Enter') sendMessage();
-//             });
-//         }
-
-//         if (voiceBtn) {
-//             // Mouse events for desktop
-//             voiceBtn.addEventListener('mousedown', (e) => {
-//                 e.preventDefault();
-//                 startRecording();
-//             });
-            
-//             voiceBtn.addEventListener('mouseup', (e) => {
-//                 e.preventDefault();
-//                 stopRecording();
-//             });
-            
-//             voiceBtn.addEventListener('mouseleave', (e) => {
-//                 if (isRecording) {
-//                     e.preventDefault();
-//                     stopRecording();
-//                 }
-//             });
-
-//             // Touch events for mobile
-//             voiceBtn.addEventListener('touchstart', (e) => {
-//                 e.preventDefault();
-//                 startRecording();
-//             });
-            
-//             voiceBtn.addEventListener('touchend', (e) => {
-//                 e.preventDefault();
-//                 stopRecording();
-//             });
-            
-//             voiceBtn.addEventListener('touchcancel', (e) => {
-//                 e.preventDefault();
-//                 stopRecording();
-//             });
-//         }
-//     }
-
-//     // Check screen size and adjust visibility
-//     function checkScreenSize() {
-//         const backgroundElement = document.querySelector('.website-background');
-        
-//         if (window.innerWidth >= 768) {
-//             if (backgroundElement) backgroundElement.style.display = 'block';
-//             if (chatbotIcon) {
-//                 chatbotIcon.style.display = 'flex';
-//                 console.log("Chatbot icon should be visible now");
-//             }
-//             if (chatbotWindow) {
-//                 // Only close if it was previously opened on mobile
-//                 if (window.lastWidth && window.lastWidth < 768) {
-//                     chatbotWindow.classList.remove('open');
-//                 }
-//             }
-//         } else {
-//             if (backgroundElement) backgroundElement.style.display = 'none';
-//             if (chatbotIcon) chatbotIcon.style.display = 'none';
-//             if (chatbotWindow) chatbotWindow.classList.add('open');
-//         }
-        
-//         window.lastWidth = window.innerWidth;
-//     }
-
-//     // Add some CSS fixes
-//     function addStyleFixes() {
-//         const style = document.createElement('style');
-//         style.textContent = `
-//             .chatbot-icon {
-//                 position: fixed;
-//                 bottom: 20px;
-//                 right: 20px;
-//                 width: 60px;
-//                 height: 60px;
-//                 background-color: #007bff;
-//                 color: white;
-//                 border-radius: 50%;
-//                 display: flex;
-//                 align-items: center;
-//                 justify-content: center;
-//                 cursor: pointer;
-//                 box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-//                 z-index: 9999;
-//                 transition: all 0.3s ease;
-//             }
-            
-//             .chatbot-icon:hover {
-//                 transform: scale(1.1);
-//                 background-color: #0056b3;
-//             }
-            
-//             .chatbot-icon i {
-//                 font-size: 24px;
-//             }
-            
-//             @keyframes pulse {
-//                 0% { transform: scale(1); opacity: 1; }
-//                 50% { transform: scale(1.1); opacity: 0.7; }
-//                 100% { transform: scale(1); opacity: 1; }
-//             }
-            
-//             .recording-animation {
-//                 display: none;
-//                 flex-direction: column;
-//                 align-items: center;
-//                 justify-content: center;
-//                 padding: 10px;
-//                 background-color: rgba(255, 71, 87, 0.1);
-//                 border-radius: 10px;
-//                 margin: 10px 0;
-//             }
-            
-//             .recording-animation i {
-//                 color: #ff4757;
-//                 font-size: 24px;
-//                 animation: pulse 1.5s infinite;
-//             }
-            
-//             .recording-animation p {
-//                 margin: 5px 0;
-//                 color: #ff4757;
-//                 font-weight: bold;
-//             }
-            
-//             .recording-animation small {
-//                 color: #ff4757;
-//                 opacity: 0.8;
-//             }
-            
-//             #voice-input-btn {
-//                 transition: all 0.3s ease;
-//             }
-            
-//             #voice-input-btn:active {
-//                 transform: scale(0.95);
-//             }
-//         `;
-//         document.head.appendChild(style);
-//     }
-
-//     // Initialize everything
-//     try {
-//         addStyleFixes();
-//         initializeVoiceRecording();
-//         loadMessages();
-//         startChat();
-//         setupEventListeners();
-        
-//         window.addEventListener('resize', checkScreenSize);
-//         // Run once on load
-//         checkScreenSize();
-        
-//         // Force re-render of chatbot icon after a short delay
-//         setTimeout(() => {
-//             if (chatbotIcon) {
-//                 chatbotIcon.style.display = 'none';
-//                 setTimeout(() => {
-//                     if (window.innerWidth >= 768) {
-//                         chatbotIcon.style.display = 'flex';
-//                         console.log("Chatbot icon visibility refreshed");
-//                     }
-//                 }, 50);
-//             }
-//         }, 500);
-//     } catch (error) {
-//         console.error("Error initializing chatbot:", error);
+// // Toggle Chat Window
+// chatbotIcon.addEventListener('click', () => {
+//     chatbotWindow.classList.toggle('open');
+//     if (!chatbotWindow.classList.contains('open')) {
+//         resetChatPosition();
 //     }
 // });
+
+// // Close Chat Window
+// closeBtn.addEventListener('click', () => {
+//     chatbotWindow.classList.remove('open');
+//     resetChatPosition();
+// });
+
+// // Draggable Functionality
+// chatbotWindow.addEventListener('mousedown', (e) => {
+//     if (e.target.closest('.chat-header')) {
+//         isDragging = true;
+//         const rect = chatbotWindow.getBoundingClientRect();
+//         offset = {
+//             x: e.clientX - rect.left,
+//             y: e.clientY - rect.top
+//         };
+//         chatbotWindow.style.cursor = 'grabbing';
+//     }
+// });
+
+// document.addEventListener('mousemove', (e) => {
+//     if (isDragging) {
+//         const x = e.clientX - offset.x;
+//         const y = e.clientY - offset.y;
+//         chatbotWindow.style.left = `${x}px`;
+//         chatbotWindow.style.top = `${y}px`;
+//     }
+// });
+
+// document.addEventListener('mouseup', () => {
+//     isDragging = false;
+//     chatbotWindow.style.cursor = 'default';
+// });
+
+// // Reset to initial position
+// function resetChatPosition() {
+//     chatbotWindow.style.left = 'calc(100% - 370px)';
+//     chatbotWindow.style.top = 'calc(100% - 590px)';
+// }
+
+// // Initialize position
+// resetChatPosition();
+
+
 
 
 let mediaRecorder;
 let audioChunks = [];
 let isRecording = false;
-let currentAudio = null;
-let isFirstInteraction = true;
-let microphoneAvailable = false;
+let currentAudio = null; // Track currently playing audio
 
-document.addEventListener('DOMContentLoaded', () => {
-    const chatbotWindow = document.getElementById('chatbot-window');
-    const closeBtn = document.getElementById('close-btn');
+// Check if this is first login
+const isFirstLogin = () => {
+    const firstLogin = localStorage.getItem('firstLogin') === null;
+    if (firstLogin) {
+        localStorage.setItem('firstLogin', 'false');
+    }
+    return firstLogin;
+};
+
+// Load messages from localStorage (simplified to avoid unnecessary voice loading)
+const loadMessages = () => {
+    // Clear chat first
     const chatBox = document.getElementById('chatBox');
-    const userInput = document.getElementById('userInput');
-    const sendBtn = document.getElementById('send-btn');
-    const voiceBtn = document.getElementById('voice-input-btn');
-    const loadingAnimation = document.getElementById('loadingAnimation');
-    const recordingAnimation = document.getElementById('recordingAnimation');
-    const chatbotIcon = document.getElementById('chatbot-icon');
-
-    // Check if site is running on HTTPS
-    const isSecureContext = window.isSecureContext;
-    console.log("Running in secure context:", isSecureContext);
-
-    const isFirstLogin = () => {
-        const firstLogin = localStorage.getItem('firstLogin') === null;
-        if (firstLogin) {
-            localStorage.setItem('firstLogin', 'false');
-            localStorage.removeItem('chatMessages');
-        }
-        return firstLogin;
-    };
-
-    const loadMessages = () => {
-        if (!chatBox) return;
-        chatBox.innerHTML = '';
-        if (!isFirstLogin()) {
-            const messages = JSON.parse(localStorage.getItem('chatMessages') || '[]');
-            messages.forEach(msg => {
-                if (msg.type === 'text') {
-                    appendMessage(msg.sender, msg.text, msg.timestamp);
-                }
-            });
-        }
-    };
-
-    const saveMessage = (sender, text, timestamp, type = 'text') => {
+    chatBox.innerHTML = '';
+    
+    // Only load messages if not first login
+    if (!isFirstLogin()) {
         const messages = JSON.parse(localStorage.getItem('chatMessages') || '[]');
-        messages.push({ sender, text, timestamp, type });
-        localStorage.setItem('chatMessages', JSON.stringify(messages));
-    };
-
-    const formatTime = (date) => {
-        return date.toLocaleTimeString([], { 
-            hour: '2-digit', 
-            minute: '2-digit', 
-            second: '2-digit',
-            hour12: true 
-        }).toUpperCase();
-    };
-
-    // Modified to handle HTTP context gracefully
-    async function initializeVoiceRecording() {
-        if (!isSecureContext) {
-            console.warn("Site is not running in a secure context. Voice recording disabled.");
-            if (voiceBtn) {
-                // Convert voice button to help button on HTTP sites
-                voiceBtn.innerHTML = '<i class="fas fa-keyboard"></i>';
-                voiceBtn.title = "Voice recording requires HTTPS";
-                
-                // Update click behavior to show message instead
-                voiceBtn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    showSecureContextWarning();
-                });
+        messages.forEach(msg => {
+            if (msg.type === 'text') {
+                appendMessage(msg.sender, msg.text, msg.timestamp);
             }
-            return;
-        }
+            // We don't load voice messages to avoid issues
+        });
+    } else {
+        // First login - clear stored messages
+        clearMessages();
+    }
+};
 
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
-            microphoneAvailable = true;
+// Save message to localStorage
+const saveMessage = (sender, text, timestamp, type = 'text') => {
+    const messages = JSON.parse(localStorage.getItem('chatMessages') || '[]');
+    messages.push({ sender, text, timestamp, type });
+    localStorage.setItem('chatMessages', JSON.stringify(messages));
+};
 
-            mediaRecorder.ondataavailable = (event) => {
-                audioChunks.push(event.data);
-            };
+// Clear all stored messages
+const clearMessages = () => {
+    localStorage.removeItem('chatMessages');
+};
 
-            mediaRecorder.onstop = async () => {
-                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                const timestamp = formatTime(new Date());
+// Initialize voice recording
+async function initializeVoiceRecording() {
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
 
-                try {
-                    showLoading();
-                    const formData = new FormData();
-                    formData.append('audio', audioBlob, 'recording.webm');
+        mediaRecorder.ondataavailable = (event) => {
+            audioChunks.push(event.data);
+        };
 
-                    const response = await fetch('http://14.139.189.232:8087/upload-audio', {
-                        method: 'POST',
-                        body: formData,
-                    });
+        mediaRecorder.onstop = async () => {
+            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+            const timestamp = new Date().toLocaleTimeString();
+            const filename = 'audio1.webm';
 
-                    if (response.ok) {
-                        const result = await response.json();
-                        const recognizedText = result.recognizedText || "Could not recognize speech";
+            const formData = new FormData();
+            formData.append('audio', audioBlob, filename);
 
-                        appendMessage('user', recognizedText, timestamp);
-                        saveMessage('user', recognizedText, timestamp);
+            try {
+                showLoadingAnimation();
+                const response = await fetch('http://14.139.189.232:8087/upload-audio', {
+                    method: 'POST',
+                    body: formData,
+                });
 
-                        stopCurrentAudio();
-                        await getBotResponse(recognizedText);
-                    }
-                } catch (error) {
-                    console.error('Upload failed:', error);
-                    appendMessage('bot', "Sorry, I encountered an error processing your voice message.", formatTime(new Date()));
-                } finally {
-                    hideLoading();
-                    audioChunks = [];
+                if (response.ok) {
+                    const result = await response.json();
+                    const recognizedText = result.recognizedText;
+
+                    // Display recognized text in the chat
+                    appendMessage('user', recognizedText, timestamp);
+                    saveMessage('user', recognizedText, timestamp);
+
+                    // Stop any currently playing audio before requesting new response
+                    stopCurrentAudio();
+                    
+                    // Send recognized text to the chatbot
+                    const botResponse = await fetch(`http://14.139.189.232:8087/get_next_question/${encodeURIComponent(recognizedText)}`);
+                    const botReply = await botResponse.text();
+                    hideLoadingAnimation();
+                    // Display bot response in the chat
+                    appendMessage('bot', botReply, new Date().toLocaleTimeString());
+                    saveMessage('bot', botReply, new Date().toLocaleTimeString());
+
+                    // Play audio response
+                    await playAudio();
                 }
-            };
-        } catch (error) {
-            microphoneAvailable = false;
-            console.error('Microphone access error:', error);
-            
-            if (voiceBtn) {
-                // Visual indication that mic is not available
-                voiceBtn.innerHTML = '<i class="fas fa-microphone-slash"></i>';
-                voiceBtn.title = "Microphone access denied";
-                
-                voiceBtn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    appendMessage('bot', "Please enable microphone access to use voice commands.", formatTime(new Date()));
-                });
+            } catch (error) {
+                console.error('Upload failed:', error);
+            } finally {
+                hideLoadingAnimation();
             }
-        }
-    }
 
-    // Show warning about HTTPS requirement
-    function showSecureContextWarning() {
-        const timestamp = formatTime(new Date());
-        appendMessage('bot', "Voice recording requires a secure connection (HTTPS). Please use the text input instead.", timestamp);
+            audioChunks = [];
+        };
+    } catch (error) {
+        console.error('Microphone access error:', error);
     }
+}
 
-    function appendMessage(sender, message, timestamp) {
-        if (!chatBox) return;
+// Append text message to chat box
+function appendMessage(sender, message, timestamp) {
+    const chatBox = document.getElementById('chatBox');
+    const messageDiv = document.createElement("div");
+    messageDiv.className = `message ${sender}`;
+
+    const initial = sender === 'user' ? 'YOU' : 'BOT';
+
+    messageDiv.innerHTML = `
+        <div class="message-avatar">${initial}</div>
+        <div class="message-content">
+            <div class="message-text">${message}</div>
+            <div class="message-timestamp">${timestamp}</div>
+        </div>
+    `;
+
+    chatBox.appendChild(messageDiv);
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+// Stop any currently playing audio
+function stopCurrentAudio() {
+    if (currentAudio) {
+        currentAudio.pause();
+        currentAudio.src = '';
+        currentAudio = null;
+    }
+}
+
+// Play audio from server
+async function playAudio() {
+    try {
+        // Stop any currently playing audio
+        stopCurrentAudio();
         
-        const messageDiv = document.createElement("div");
-        messageDiv.className = `message ${sender}`;
-
-        const initial = sender === 'user' ? 'YOU' : 'BOT';
-        const isBot = sender === 'bot';
-
-        messageDiv.innerHTML = `
-            <div class="message-avatar">${initial}</div>
-            <div class="message-content ${isBot ? 'message-bot' : ''}">
-                <div class="message-text">${message}</div>
-                <div class="message-timestamp">${timestamp}</div>
-            </div>
-        `;
-
-        chatBox.appendChild(messageDiv);
-        chatBox.scrollTop = chatBox.scrollHeight;
-        
-        if (isFirstInteraction) {
-            isFirstInteraction = false;
+        const response = await fetch('http://14.139.189.232:8087/audio');
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
         }
-    }
 
-    function stopCurrentAudio() {
-        if (currentAudio) {
-            currentAudio.pause();
+        const audioBlob = await response.blob();
+        const audioUrl = URL.createObjectURL(audioBlob);
+
+        currentAudio = new Audio(audioUrl);
+        currentAudio.autoplay = true;
+
+        currentAudio.onended = () => {
+            URL.revokeObjectURL(audioUrl);
             currentAudio = null;
-        }
-    }
-
-    async function playAudio() {
-        try {
-            stopCurrentAudio();
-            
-            const response = await fetch('http://14.139.189.232:8087/audio');
-            if (!response.ok) throw new Error('Audio fetch failed');
-            
-            const audioBlob = await response.blob();
-            const audioUrl = URL.createObjectURL(audioBlob);
-            
-            currentAudio = new Audio(audioUrl);
-            currentAudio.autoplay = true;
-            
+        };
+        
+        return new Promise((resolve) => {
             currentAudio.onended = () => {
                 URL.revokeObjectURL(audioUrl);
                 currentAudio = null;
-                hideLoading();
+                resolve();
             };
-        } catch (error) {
-            console.error('Error playing audio:', error);
-            hideLoading();
-        }
+        });
+    } catch (error) {
+        console.error('Error fetching or playing audio:', error);
+        return Promise.reject(error);
     }
+}
 
-    async function getBotResponse(message) {
-        try {
-            showLoading();
-            const response = await fetch(`http://14.139.189.232:8087/get_next_question/${encodeURIComponent(message)}`);
-            const botReply = await response.text();
-            
-            const timestamp = formatTime(new Date());
-            hideLoading();
-            appendMessage('bot', botReply, timestamp);
-            saveMessage('bot', botReply, timestamp);
-           
-            await playAudio();
-        } catch (error) {
-            console.error('Error getting bot response:', error);
-            appendMessage('bot', "Sorry, I'm having trouble connecting to the server.", formatTime(new Date()));
-        } finally {
-            hideLoading();
-        }
-    }
-
-    async function startChat() {
-        try {
-            const response = await fetch('http://14.139.189.232:8087/first_question');
-            const firstQuestion = await response.text();
-            
-            const timestamp = formatTime(new Date());
-            appendMessage('bot', firstQuestion, timestamp);
+// Start the chat by fetching the first question
+async function startChat() {
+    try {
+        const response = await fetch('http://14.139.189.232:8087/first_question');
+        const firstQuestion = await response.text();
+        
+        if (firstQuestion) {
+            const timestamp = new Date().toLocaleTimeString();
+            appendMessage("bot", firstQuestion, timestamp);
             saveMessage('bot', firstQuestion, timestamp);
             
-            // If not on HTTPS, explain the voice limitation
-            if (!isSecureContext) {
-                setTimeout(() => {
-                    appendMessage('bot', "Note: Voice recording is disabled because this site is not running on HTTPS. Please type your questions instead.", formatTime(new Date()));
-                }, 1000);
-            }
-            
+            // Play audio for first question
+            playAudio();
+        }
+    } catch (error) {
+        console.error('Error starting chat:', error);
+    }
+}
+
+// Initialize the application
+document.addEventListener('DOMContentLoaded', () => {
+    initializeVoiceRecording();
+    loadMessages();
+    startChat();
+});
+
+// Button event listeners
+document.getElementById('send-btn').addEventListener('click', sendMessage);
+document.getElementById('userInput').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') sendMessage();
+});
+
+const voiceButton = document.getElementById('voice-input-btn');
+
+voiceButton.addEventListener('mousedown', startRecording);
+voiceButton.addEventListener('mouseup', stopRecording);
+voiceButton.addEventListener('mouseleave', stopRecording);
+
+// Send a text message
+async function sendMessage() {
+    const input = document.getElementById('userInput');
+    const message = input.value.trim();
+    if (message) {
+        const timestamp = new Date().toLocaleTimeString();
+        appendMessage('user', message, timestamp);
+        saveMessage('user', message, timestamp);
+        
+        input.value = '';
+
+        // Stop any currently playing audio
+        stopCurrentAudio();
+        
+        try {
+            showLoadingAnimation();
+            const response = await fetch(`http://14.139.189.232:8087/get_next_question/${encodeURIComponent(message)}`);
+            const botReply = await response.text();
+            hideLoadingAnimation();
+            const botTimestamp = new Date().toLocaleTimeString();
+            appendMessage('bot', botReply, botTimestamp);
+            saveMessage('bot', botReply, botTimestamp);
+
+            // Play the bot's voice response
             await playAudio();
         } catch (error) {
-            console.error('Error starting chat:', error);
-            appendMessage('bot', "Welcome to KSFE Assistant! How can I help you today?", formatTime(new Date()));
+            console.error('Error sending message:', error);
+        } finally {
+            hideLoadingAnimation();
         }
     }
+}
 
-    async function sendMessage() {
-        if (!userInput || !userInput.value) return;
+// Start recording - using className instead of classList
+function startRecording() {
+    if (mediaRecorder && mediaRecorder.state === 'inactive') {
+        // Stop any currently playing audio
+        stopCurrentAudio();
         
-        const message = userInput.value.trim();
-        if (message) {
-            const timestamp = formatTime(new Date());
-            appendMessage('user', message, timestamp);
-            saveMessage('user', message, timestamp);
-            
-            userInput.value = '';
-            stopCurrentAudio();
-            await getBotResponse(message);
-        }
-    }
-
-    // Recording functions with direct style manipulation
-    function startRecording() {
-        if (microphoneAvailable && mediaRecorder && mediaRecorder.state === 'inactive') {
-            stopCurrentAudio();
-            audioChunks = [];
-            mediaRecorder.start();
-            isRecording = true;
-            
-            if (voiceBtn) {
-                voiceBtn.style.backgroundColor = '#ff4757';
-                voiceBtn.style.transform = 'scale(1.1)';
-            }
-            
-            showRecording();
-        }
-    }
-
-    function stopRecording() {
-        if (microphoneAvailable && mediaRecorder && mediaRecorder.state === 'recording') {
-            mediaRecorder.stop();
-            isRecording = false;
-            
-            if (voiceBtn) {
-                voiceBtn.style.backgroundColor = '';
-                voiceBtn.style.transform = '';
-            }
-            
-            hideRecording();
-        }
-    }
-
-    function showLoading() {
-        if (loadingAnimation) {
-            loadingAnimation.style.display = 'block';
-        }
-    }
-
-    function hideLoading() {
-        if (loadingAnimation) {
-            loadingAnimation.style.display = 'none';
-        }
-    }
-
-    function showRecording() {
-        if (recordingAnimation) {
-            recordingAnimation.style.display = 'flex';
-        }
-    }
-
-    function hideRecording() {
-        if (recordingAnimation) {
-            recordingAnimation.style.display = 'none';
-        }
-    }
-
-    let isDragging = false;
-    let offset = { x: 0, y: 0 };
-
-    // Make chatbot draggable in desktop mode
-    if (chatbotWindow) {
-        chatbotWindow.addEventListener('mousedown', (e) => {
-            if (window.innerWidth >= 768 && e.target.closest('.chat-header')) {
-                isDragging = true;
-                const rect = chatbotWindow.getBoundingClientRect();
-                offset = {
-                    x: e.clientX - rect.left,
-                    y: e.clientY - rect.top
-                };
-                chatbotWindow.style.cursor = 'grabbing';
-            }
-        });
-    }
-
-    document.addEventListener('mousemove', (e) => {
-        if (isDragging && chatbotWindow) {
-            const x = e.clientX - offset.x;
-            const y = e.clientY - offset.y;
-            chatbotWindow.style.left = `${x}px`;
-            chatbotWindow.style.top = `${y}px`;
-        }
-    });
-
-    document.addEventListener('mouseup', () => {
-        isDragging = false;
-        if (chatbotWindow) {
-            chatbotWindow.style.cursor = 'default';
-        }
-    });
-
-    // Set up event listeners
-    function setupEventListeners() {
-        // Fix for chatbot icon
-        if (chatbotIcon) {
-            chatbotIcon.removeEventListener('click', toggleChatWindow);
-            chatbotIcon.addEventListener('click', toggleChatWindow);
-            chatbotIcon.style.cursor = 'pointer';
-            chatbotIcon.style.zIndex = '9999';
+        audioChunks = [];
+        mediaRecorder.start();
+        isRecording = true;
+        
+        // Using className instead of classList.add
+        const currentClass = voiceButton.className || '';
+        if (currentClass.indexOf('recording') === -1) {
+            voiceButton.className = currentClass + ' recording';
         }
         
-        // Function to toggle chat window
-        function toggleChatWindow(e) {
-            e.stopPropagation();
-            if (chatbotWindow) {
-                chatbotWindow.classList.toggle('open');
-            }
-        }
-
-        if (closeBtn) {
-            closeBtn.addEventListener('click', () => {
-                if (window.innerWidth >= 768 && chatbotWindow) {
-                    chatbotWindow.classList.remove('open');
-                }
-            });
-        }
-
-        if (sendBtn) {
-            sendBtn.addEventListener('click', sendMessage);
-        }
-
-        if (userInput) {
-            userInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') sendMessage();
-            });
-        }
-
-        // Only set up voice recording events if microphone is available
-        if (isSecureContext && voiceBtn) {
-            // Mouse events for desktop
-            voiceBtn.addEventListener('mousedown', (e) => {
-                e.preventDefault();
-                startRecording();
-            });
-            
-            voiceBtn.addEventListener('mouseup', (e) => {
-                e.preventDefault();
-                stopRecording();
-            });
-            
-            voiceBtn.addEventListener('mouseleave', (e) => {
-                if (isRecording) {
-                    e.preventDefault();
-                    stopRecording();
-                }
-            });
-
-            // Touch events for mobile
-            voiceBtn.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                startRecording();
-            });
-            
-            voiceBtn.addEventListener('touchend', (e) => {
-                e.preventDefault();
-                stopRecording();
-            });
-            
-            voiceBtn.addEventListener('touchcancel', (e) => {
-                e.preventDefault();
-                stopRecording();
-            });
-        }
+        showRecordingAnimation();
     }
+}
 
-    // Check screen size and adjust visibility
-    function checkScreenSize() {
-        const backgroundElement = document.querySelector('.website-background');
+// Stop recording - using className instead of classList
+function stopRecording() {
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
+        mediaRecorder.stop();
+        isRecording = false;
         
-        if (window.innerWidth >= 768) {
-            if (backgroundElement) backgroundElement.style.display = 'block';
-            if (chatbotIcon) chatbotIcon.style.display = 'flex';
-            if (chatbotWindow) {
-                if (window.lastWidth && window.lastWidth < 768) {
-                    chatbotWindow.classList.remove('open');
-                }
-            }
-        } else {
-            if (backgroundElement) backgroundElement.style.display = 'none';
-            if (chatbotIcon) chatbotIcon.style.display = 'none';
-            if (chatbotWindow) chatbotWindow.classList.add('open');
-        }
+        // Using className.replace instead of classList.remove
+        voiceButton.className = (voiceButton.className || '').replace(/\brecording\b/g, '').trim();
         
-        window.lastWidth = window.innerWidth;
+        hideRecordingAnimation();
+        showLoadingAnimation();
     }
+}
 
-    // Add style fixes
-    function addStyleFixes() {
-        const style = document.createElement('style');
-        style.textContent = `
-            .chatbot-icon {
-                position: fixed;
-                bottom: 20px;
-                right: 20px;
-                width: 60px;
-                height: 60px;
-                background-color: #007bff;
-                color: white;
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                cursor: pointer;
-                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-                z-index: 9999;
-                transition: all 0.3s ease;
-            }
-            
-            .chatbot-icon:hover {
-                transform: scale(1.1);
-                background-color: #0056b3;
-            }
-            
-            .chatbot-icon i {
-                font-size: 24px;
-            }
-            
-            /* Recording animation styles */
-            @keyframes pulse {
-                0% { transform: scale(1); opacity: 1; }
-                50% { transform: scale(1.1); opacity: 0.7; }
-                100% { transform: scale(1); opacity: 1; }
-            }
-            
-            .recording-animation {
-                display: none;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                padding: 10px;
-                background-color: rgba(255, 71, 87, 0.1);
-                border-radius: 10px;
-                margin: 10px 0;
-            }
-            
-            .recording-animation i {
-                color: #ff4757;
-                font-size: 24px;
-                animation: pulse 1.5s infinite;
-            }
-            
-            .recording-animation p {
-                margin: 5px 0;
-                color: #ff4757;
-                font-weight: bold;
-            }
-            
-            .recording-animation small {
-                color: #ff4757;
-                opacity: 0.8;
-            }
-            
-            #voice-input-btn {
-                transition: all 0.3s ease;
-            }
-            
-            #voice-input-btn.unavailable {
-                background-color: #d9d9d9;
-                color: #888;
-                cursor: not-allowed;
-            }
-            
-            #voice-input-btn:active {
-                transform: scale(0.95);
-            }
-            
-            .https-message {
-                background-color: #fff3cd;
-                color: #856404;
-                padding: 8px 12px;
-                border-radius: 4px;
-                margin: 8px 0;
-                font-size: 12px;
-                text-align: center;
-            }
-            
-            .https-message a {
-                color: #856404;
-                text-decoration: underline;
-            }
-        `;
-        document.head.appendChild(style);
+// Show loading animation
+function showLoadingAnimation() {
+    const loadingAnimation = document.getElementById('loadingAnimation');
+    if (loadingAnimation) {
+        loadingAnimation.style.display = 'block';
     }
+}
 
-    // Initialize everything
-    try {
-        addStyleFixes();
-        initializeVoiceRecording();
-        loadMessages();
-        startChat();
-        setupEventListeners();
-        
-        window.addEventListener('resize', checkScreenSize);
-        checkScreenSize();
-        
-        // Force re-render of chatbot icon after a short delay
-        setTimeout(() => {
-            if (chatbotIcon) {
-                chatbotIcon.style.display = 'none';
-                setTimeout(() => {
-                    if (window.innerWidth >= 768) {
-                        chatbotIcon.style.display = 'flex';
-                    }
-                }, 50);
-            }
-        }, 500);
-    } catch (error) {
-        console.error("Error initializing chatbot:", error);
+// Hide loading animation
+function hideLoadingAnimation() {
+    const loadingAnimation = document.getElementById('loadingAnimation');
+    if (loadingAnimation) {
+        loadingAnimation.style.display = 'none';
+    }
+}
+
+// Show recording animation
+function showRecordingAnimation() {
+    const recordingAnimation = document.getElementById('recordingAnimation');
+    if (recordingAnimation) {
+        recordingAnimation.style.display = 'block';
+    }
+}
+
+// Hide recording animation
+function hideRecordingAnimation() {
+    const recordingAnimation = document.getElementById('recordingAnimation');
+    if (recordingAnimation) {
+        recordingAnimation.style.display = 'none';
+    }
+}
+
+// UI and Draggable Functionality
+const chatbotIcon = document.getElementById('chatbot-icon');
+const chatbotWindow = document.getElementById('chatbot-window');
+const closeBtn = document.getElementById('close-btn');
+let isDragging = false;
+let offset = { x: 0, y: 0 };
+
+// Toggle Chat Window
+chatbotIcon.addEventListener('click', () => {
+    const isOpen = chatbotWindow.className.indexOf('open') !== -1;
+    if (isOpen) {
+        chatbotWindow.className = chatbotWindow.className.replace(/\bopen\b/g, '').trim();
+        resetChatPosition();
+    } else {
+        chatbotWindow.className = chatbotWindow.className + ' open';
     }
 });
+
+// Close Chat Window
+closeBtn.addEventListener('click', () => {
+    chatbotWindow.className = chatbotWindow.className.replace(/\bopen\b/g, '').trim();
+    resetChatPosition();
+});
+
+// Draggable Functionality
+chatbotWindow.addEventListener('mousedown', (e) => {
+    if (e.target.closest('.chat-header')) {
+        isDragging = true;
+        const rect = chatbotWindow.getBoundingClientRect();
+        offset = {
+            x: e.clientX - rect.left,
+            y: e.clientY - rect.top
+        };
+        chatbotWindow.style.cursor = 'grabbing';
+    }
+});
+
+document.addEventListener('mousemove', (e) => {
+    if (isDragging) {
+        const x = e.clientX - offset.x;
+        const y = e.clientY - offset.y;
+        chatbotWindow.style.left = `${x}px`;
+        chatbotWindow.style.top = `${y}px`;
+    }
+});
+
+document.addEventListener('mouseup', () => {
+    isDragging = false;
+    chatbotWindow.style.cursor = 'default';
+});
+
+// Reset to initial position
+function resetChatPosition() {
+    chatbotWindow.style.left = 'calc(100% - 370px)';
+    chatbotWindow.style.top = 'calc(100% - 590px)';
+}
+
+// Initialize position
+resetChatPosition();

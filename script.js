@@ -20,14 +20,8 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log("Chatbot icon found:", chatbotIcon !== null);
     console.log("Chatbot window found:", chatbotWindow !== null);
 
-    // Check for reload flag and clear localStorage if needed
-    if (sessionStorage.getItem('clearOnReload') === 'true') {
-        clearChatMemory();
-        sessionStorage.removeItem('clearOnReload');
-    }
-
-    // Set flag to clear on next reload
-    sessionStorage.setItem('clearOnReload', 'true');
+    // ALWAYS clear localStorage on page load
+    clearChatMemory();
 
     const isFirstLogin = () => {
         const firstLogin = localStorage.getItem('firstLogin') === null;
@@ -38,13 +32,21 @@ document.addEventListener('DOMContentLoaded', () => {
         return firstLogin;
     };
 
-    // Function to clear chat memory
+    // Function to clear chat memory - more aggressive approach
     function clearChatMemory() {
+        // Clear all chat-related localStorage items
         localStorage.removeItem('chatMessages');
-        console.log("Chat memory cleared");
+        localStorage.removeItem('firstLogin');
+        
+        // Force clear session storage too
+        sessionStorage.clear();
+        
+        // Clear chat box display
         if (chatBox) {
             chatBox.innerHTML = '';
         }
+        
+        console.log("Chat memory cleared completely");
     }
 
     const loadMessages = () => {
@@ -338,6 +340,12 @@ document.addEventListener('DOMContentLoaded', () => {
         // Add clear chat button to header
         const chatHeader = document.querySelector('.chat-header');
         if (chatHeader) {
+            // First check if button already exists and remove it to prevent duplicates
+            const existingClearBtn = document.getElementById('clear-btn');
+            if (existingClearBtn) {
+                existingClearBtn.remove();
+            }
+            
             // Create clear chat button
             const clearBtn = document.createElement('button');
             clearBtn.id = 'clear-btn';
@@ -350,10 +358,16 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Add event listener
             clearBtn.addEventListener('click', () => {
-                if (confirm('Are you sure you want to clear the chat history?')) {
-                    clearChatMemory();
-                    startChat(); // Restart the chat with the initial message
-                }
+                clearChatMemory();
+                chatBox.innerHTML = ''; // Force clear the chat display
+                
+                const timestamp = formatTime(new Date());
+                appendMessage('bot', "Chat history has been cleared.", timestamp);
+                
+                // Start fresh chat after a short delay
+                setTimeout(() => {
+                    startChat();
+                }, 500);
             });
         }
         

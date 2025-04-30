@@ -20,6 +20,15 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log("Chatbot icon found:", chatbotIcon !== null);
     console.log("Chatbot window found:", chatbotWindow !== null);
 
+    // Check for reload flag and clear localStorage if needed
+    if (sessionStorage.getItem('clearOnReload') === 'true') {
+        clearChatMemory();
+        sessionStorage.removeItem('clearOnReload');
+    }
+
+    // Set flag to clear on next reload
+    sessionStorage.setItem('clearOnReload', 'true');
+
     const isFirstLogin = () => {
         const firstLogin = localStorage.getItem('firstLogin') === null;
         if (firstLogin) {
@@ -28,6 +37,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         return firstLogin;
     };
+
+    // Function to clear chat memory
+    function clearChatMemory() {
+        localStorage.removeItem('chatMessages');
+        console.log("Chat memory cleared");
+        if (chatBox) {
+            chatBox.innerHTML = '';
+        }
+    }
 
     const loadMessages = () => {
         if (!chatBox) return;
@@ -317,6 +335,28 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log("Event listener added to chatbot icon");
         }
         
+        // Add clear chat button to header
+        const chatHeader = document.querySelector('.chat-header');
+        if (chatHeader) {
+            // Create clear chat button
+            const clearBtn = document.createElement('button');
+            clearBtn.id = 'clear-btn';
+            clearBtn.innerHTML = '<i class="fas fa-trash"></i>';
+            clearBtn.title = 'Clear Chat History';
+            clearBtn.style.marginRight = '10px';
+            
+            // Insert before close button
+            chatHeader.insertBefore(clearBtn, closeBtn);
+            
+            // Add event listener
+            clearBtn.addEventListener('click', () => {
+                if (confirm('Are you sure you want to clear the chat history?')) {
+                    clearChatMemory();
+                    startChat(); // Restart the chat with the initial message
+                }
+            });
+        }
+        
         // Function to toggle chat window
         function toggleChatWindow(e) {
             console.log("Chatbot icon clicked!");
@@ -479,6 +519,22 @@ document.addEventListener('DOMContentLoaded', () => {
             
             #voice-input-btn:active {
                 transform: scale(0.95);
+            }
+            
+            #clear-btn {
+                background: none;
+                border: none;
+                color: #fff;
+                cursor: pointer;
+                font-size: 16px;
+                padding: 5px;
+                border-radius: 50%;
+                transition: all 0.3s ease;
+            }
+            
+            #clear-btn:hover {
+                background-color: rgba(255, 255, 255, 0.2);
+                transform: scale(1.1);
             }
         `;
         document.head.appendChild(style);
